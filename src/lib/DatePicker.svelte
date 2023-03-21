@@ -1,145 +1,76 @@
 <script lang="ts">
 	import { createEventDispatcher, onMount } from 'svelte';
 	import Arrow from '$lib/Arrow.svelte';
-
-	export function iso(date) {
-		const pad = (n) => (n < 10 ? '0' + n : n);
-		return date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate());
-	}
+	import Close from '$lib/Close.svelte';
 
 	export let value: Date | null = null;
-	export let days = 'Su Mo Tu We Th Fr Sa'.split(' ');
-	export let months =
-		'January|February|March|April|May|June|July|August|September|October|November|December'.split(
-			'|',
-		);
 	export let start = 0; // first day of the week (0 = Sunday, 1 = Monday)
 	export let offset = 0; // offset in months from currently selected date
+	export let days = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+	export let months = [
+		'January',
+		'February',
+		'March',
+		'April',
+		'May',
+		'June',
+		'July',
+		'August',
+		'September',
+		'October',
+		'November',
+		'December',
+	];
 	export let id = ' ';
 	export let show = false;
-	export let duration = '4';
 	export let xOffset = 0;
 	export let yOffset = 0;
 	export let modal = true;
-	export let blockedDates = [];
+	export let showToday = true;
+	export let blockedDates: Date[] = [];
+	export let blockPastDays = false;
+	export let blockedDaysOfWeek: number[] = [];
 
-	let date = null;
-	let today: Date = new Date();
 	let viewDate: Date;
-	let month;
-	let year;
-	let weeks;
-	let durationValue;
-
-	const selectedOffset = 5;
-	const dispatch = createEventDispatcher();
+	let weeks: { date: number; val: string; class: string }[][];
+	let dispatch = createEventDispatcher();
+	let today: Date = new Date();
+	let x: number;
+	let y: number;
+	let mounted = false;
+	let offsetDays = days.splice(0, start);
+	days = days.concat(offsetDays);
 
 	onMount(() => {
-		durationValue = parseInt(duration);
+		mounted = true;
 	});
 
-	$: acceptDate(value);
-
-	function acceptDate(value) {
-		if (!value) {
-			return;
-		}
-		const newDate = new Date(value);
-
-		if (newDate) {
-			date = iso(newDate);
-		}
+	function closeModal(): void {
+		show = false;
 	}
 
-	function includesInterval(dates, startDate, endDate) {
-		while (startDate <= endDate) {
-			if (dates.some((date) => date.toDateString() === startDate.toDateString())) {
-				return true;
-			}
-			startDate.setDate(startDate.getDate() + 1);
-		}
-
-		return false;
+	function pad(n: number): string {
+		return n < 10 ? '0' + n : n.toString();
 	}
 
-	$: {
-		s(durationValue);
+	function iso(date: Date): string {
+		return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 	}
 
-	function s(_) {
-		selectDate({ val: date, class: [] }, true);
-	}
-
-	function selectDate(newValue, changeDuration = false) {
-		if (!newValue.val) {
-			return;
-		}
-		if (newValue.class.includes('blocked')) {
-			return;
-		}
-		newValue = newValue.val;
-		let end = new Date(newValue);
-		end = getDateWithTimezoneOffset(end);
-		end.setDate(end.getDate() + durationValue - 1);
-		let newValueDate = new Date(newValue);
-		newValueDate = getDateWithTimezoneOffset(newValueDate);
-		if (includesInterval(blockedDates, newValueDate, end)) {
-			dispatch('intervalError', changeDuration);
-			return;
-		}
-		if (end.getDay() == 0) {
-			dispatch('sundayError', changeDuration);
-		}
-		date = newValue;
-		value = new Date(newValue);
-		value = getDateWithTimezoneOffset(value);
-		offset = 0;
-		dispatch('dateSelected');
-	}
-
-	$: viewDate = viewDateFrom(date, offset);
-
-	$: month = months[viewDate.getMonth()];
-
-	$: year = viewDate.getFullYear();
-
-	$: {
-		durationValue = parseInt(duration);
-		weeks = weeksFrom(viewDate, date, start);
-	}
-
-	function getDateWithTimezoneOffset(date: Date) {
-		let userTimezoneOffset = date.getTimezoneOffset() * 60000;
-		return new Date(date.getTime() + userTimezoneOffset);
-	}
-
-	function viewDateFrom(date, offset) {
-		if (!date) {
-			return new Date();
-		}
-		let viewDate = new Date(date);
-		viewDate.setMonth(viewDate.getMonth() + offset);
-		return viewDate;
-	}
-
-	function checkDuration(val, date) {
-		let to: Date = new Date(date);
-		to = getDateWithTimezoneOffset(to);
-		to.setDate(to.getDate() + durationValue - 1);
-		return val >= date && val <= iso(to);
-	}
-
-	function isBlocked(val, selectedWithOffset) {
+	function isBlocked(val: string): boolean {
 		let d = new Date(val);
-		d = getDateWithTimezoneOffset(d);
+		d.setDate(d.getDate() + 1);
 		return (
-			d.getDay() == 0 ||
-			d.getTime() < selectedWithOffset.getTime() ||
+			blockedDaysOfWeek.includes(d.getDay()) ||
+			(blockPastDays && d.getTime() < new Date().getTime()) ||
 			blockedDates.some((b) => compareDates(b, d))
 		);
 	}
 
-	function weeksFrom(viewDate, date, start) {
+	function weeksFrom(
+		viewDate: Date,
+		value: Date | null,
+	): { date: number; val: string; class: string }[][] {
 		let first = new Date(viewDate.getTime());
 		first.setDate(1);
 		first.setDate(first.getDate() + ((start - first.getDay() - 7) % 7));
@@ -148,29 +79,25 @@
 		last.setDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 0).getDate());
 		last.setDate(last.getDate() + ((start - last.getDay() + 6) % 7));
 
+		viewDate.getMonth();
+		viewDate.getFullYear();
 		let d = new Date(first.getTime()),
-			M = viewDate.getMonth(),
-			Y = viewDate.getFullYear(),
 			week = [],
 			weeks = [week];
 
+		let valueIso = value ? iso(value) : '';
 		while (d.getTime() <= last.getTime()) {
+			d.getMonth();
+			d.getFullYear();
 			let dd = d.getDate(),
-				mm = d.getMonth(),
-				yy = d.getFullYear(),
-				val = iso(d),
-				selectedWithOffset = new Date(today);
-
-			selectedWithOffset.setDate(today.getDate() + selectedOffset - 1);
-
+				val = iso(d);
 			week.push({
 				date: dd,
-				val,
+				val: val,
 				class: [
-					isBlocked(val, selectedWithOffset) ? 'blocked' : '',
-					iso(d) === iso(today) && iso(d) != date ? 'today' : '',
-					checkDuration(val, date) ? 'selected' : '',
-					// mm == M ? "" : ((mm > M ? yy >= Y : yy > Y) ? "future" : "past")
+					showToday && val === iso(today) && val != valueIso ? 'today' : '',
+					val === valueIso ? 'selected' : '',
+					isBlocked(val) ? 'blocked' : '',
 				].join(' '),
 			});
 
@@ -181,22 +108,24 @@
 				weeks.push(week);
 			}
 		}
+
 		weeks.pop();
 
 		return weeks;
 	}
 
-	let x;
-	let y;
-
-	function getCoordinates() {
-		const element = document.querySelector('#' + id);
-		const position = element.getBoundingClientRect();
-		x = position.left + xOffset;
-		y = position.top + yOffset;
+	function getDateWithTimezoneOffset(date: Date): Date {
+		let userTimezoneOffset = date.getTimezoneOffset() * 60000;
+		return new Date(date.getTime() + userTimezoneOffset);
 	}
 
-	function compareDates(date1: Date, date2: Date) {
+	function viewDateFrom(value: Date | null, offset: number): void {
+		let newViewDate = value ? new Date(value.getTime()) : new Date();
+		newViewDate.setMonth(newViewDate.getMonth() + offset);
+		viewDate = newViewDate;
+	}
+
+	function compareDates(date1: Date, date2: Date): boolean {
 		return (
 			date1.getFullYear() === date2.getFullYear() &&
 			date1.getMonth() === date2.getMonth() &&
@@ -204,37 +133,63 @@
 		);
 	}
 
-	$: {
-		if (show) {
-			if (typeof value == 'string') {
-				value = new Date(value);
-			}
-			getCoordinates();
-		}
+	function selectDate(newValue: { val: string; class: string[] }): void {
+		if (!newValue.val || newValue.class.includes('blocked')) return;
+		const selectedDate = new Date(newValue.val);
+		const end = getDateWithTimezoneOffset(new Date(selectedDate.getTime()));
+		end.setDate(end.getDate() - 1);
+		value = new Date(newValue.val);
+		value = getDateWithTimezoneOffset(value);
+		offset = 0;
+		dispatch('dateSelected');
 	}
 
-	function leftClick() {
+	function getCoordinates(): void {
+		const element = document.querySelector('#' + id);
+		if (!element) return;
+		const position = element.getBoundingClientRect();
+		x = position.left + xOffset;
+		y = position.top + yOffset;
+	}
+
+	function leftClick(): void {
 		viewDate.setMonth(viewDate.getMonth() - 1);
 		viewDate = viewDate;
 	}
 
-	function rightClick() {
+	function rightClick(): void {
 		viewDate.setMonth(viewDate.getMonth() + 1);
 		viewDate = viewDate;
+	}
+
+	$: viewDateFrom(value, offset);
+
+	$: {
+		if (show && mounted) getCoordinates();
+	}
+
+	$: {
+		weeks = weeksFrom(viewDate, value);
 	}
 </script>
 
 {#if show || !modal}
 	<div
 		class="datepicker-container"
-		style="z-index:10; {modal ? `position: absolute; top: ${y + 40}px; left: ${x}px` : ''};"
+		style="z-index: 10; {modal ? `position: absolute; top: ${y + 40}px; left: ${x}px` : ''};"
 	>
+		{#if modal}
+			<div class="dp-row" style="justify-content: end">
+				<Close on:click={closeModal} />
+			</div>
+		{/if}
 		<div class="dp-row" style="justify-content: space-between; align-items: center">
 			<Arrow on:click={leftClick} width="24px" transform="rotate(180deg)" />
-			<div class="h6" style="height: 20px; padding-bottom: 5px">{month}, {year}</div>
+			<div class="h6" style="height: 20px;">
+				{months[viewDate.getMonth()]}, {viewDate.getFullYear()}
+			</div>
 			<Arrow on:click={rightClick} width="24px" />
 		</div>
-
 		<table>
 			<tr class="b1" style="color: #7166EC">
 				{#each days as day}
@@ -248,8 +203,10 @@
 							class="b1 btn {day.class}"
 							on:click={() => {
 								selectDate(day);
-							}}>{day.date}</td
+							}}
 						>
+							{day.date}
+						</td>
 					{/each}
 				</tr>
 			{/each}
@@ -258,28 +215,13 @@
 {/if}
 
 <style>
-	.date {
-		font-family: Roboto;
-		font-style: normal;
-		font-weight: normal;
-		font-size: 18px;
-		line-height: 155%;
-
-		color: #bdbdbd;
-	}
-	@media (max-width: 1201px) {
-		.date {
-			font-size: 16px;
-			line-height: 20px;
-		}
-	}
-
 	.datepicker-container {
 		padding: 5px 10px 10px 10px;
 		border-radius: 10px;
-		width: 400px;
+		width: 420px;
 		box-shadow: 0 2px 4px rgba(187, 187, 187, 0.2);
 		background: white;
+		box-sizing: border-box;
 	}
 
 	table {
@@ -332,7 +274,7 @@
 	}
 
 	td.today:hover {
-		cursor: auto;
+		cursor: pointer;
 		color: #ffffff;
 		background-color: rgba(113, 102, 236, 0.5);
 	}

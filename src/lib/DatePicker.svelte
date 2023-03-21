@@ -3,10 +3,19 @@
 	import Arrow from '$lib/Arrow.svelte';
 	import Close from '$lib/Close.svelte';
 
+	// Value of the selected date
 	export let value: Date | null = null;
-	export let start = 0; // first day of the week (0 = Sunday, 1 = Monday)
-	export let offset = 0; // offset in months from currently selected date
+
+	// First day of the week (0 = Sunday, 1 = Monday)
+	export let start = 0;
+
+	// Offset in months from the currently selected date
+	export let offset = 0;
+
+	// Array of day names
 	export let days = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+
+	// Array of month names
 	export let months = [
 		'January',
 		'February',
@@ -21,15 +30,45 @@
 		'November',
 		'December',
 	];
+
+	// ID of the element where the datepicker component appears when used as a modal
 	export let id = ' ';
+
+	// Whether the datepicker is visible or hidden
 	export let show = false;
+
+	// Horizontal offset of the datepicker from the target element
 	export let xOffset = 0;
+
+	// Vertical offset of the datepicker from the target element
 	export let yOffset = 0;
+
+	// Whether the datepicker is displayed as a modal or not
 	export let modal = true;
+
+	// Whether today's date is displayed with a special style
 	export let showToday = true;
+
+	// Array of dates that are blocked and cannot be selected
 	export let blockedDates: Date[] = [];
+
+	// Whether past dates are blocked and cannot be selected
 	export let blockPastDays = false;
+
+	// Array of days of the week that are blocked and cannot be selected
 	export let blockedDaysOfWeek: number[] = [];
+
+	// Style of the today's date
+	export let todayStyle = '';
+
+	// Style of the selected date
+	export let selectedStyle = '';
+
+	// Style of the blocked date
+	export let blockedStyle = '';
+
+	// Style applied on date hover
+	export let hoverStyle = '';
 
 	let viewDate: Date;
 	let weeks: { date: number; val: string; class: string }[][];
@@ -162,6 +201,40 @@
 		viewDate = viewDate;
 	}
 
+	function getStyle(day): string {
+		if (day.class.includes('today')) {
+			return todayStyle;
+		}
+		if (day.class.includes('selected')) {
+			return selectedStyle;
+		}
+		if (day.class.includes('blocked')) {
+			return blockedStyle;
+		}
+		return '';
+	}
+
+	function cssToObject(css) {
+		if (!css.endsWith(';')) {
+			css += ';';
+		}
+		const styles = {};
+		const rules = css.split(';');
+
+		for (let i = 0; i < rules.length; i++) {
+			const rule = rules[i].trim();
+			if (!rule) {
+				continue;
+			}
+			const [property, value] = rule.split(':');
+			const propertyName = property
+				.trim()
+				.replace(/-([a-z])/g, (match, letter) => letter.toUpperCase());
+			styles[propertyName] = value.trim();
+		}
+		return styles;
+	}
+
 	$: viewDateFrom(value, offset);
 
 	$: {
@@ -201,6 +274,16 @@
 					{#each week as day}
 						<td
 							class="b1 btn {day.class}"
+							style={getStyle(day)}
+							on:mouseover={(e) => {
+								let cssObject = cssToObject(hoverStyle);
+								for (let parameter of Object.keys(cssObject)) {
+									e.target.style[parameter] = cssObject[parameter];
+								}
+							}}
+							on:mouseleave={(e) => {
+								e.target.style = null;
+							}}
 							on:click={() => {
 								selectDate(day);
 							}}
@@ -240,12 +323,6 @@
 		margin: 0;
 		border-radius: 100px;
 		transition: 0.25s;
-	}
-
-	td.past,
-	td.future {
-		background: white;
-		color: #bdbdbd;
 	}
 
 	.btn {

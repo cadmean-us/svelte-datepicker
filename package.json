@@ -3,7 +3,7 @@
 	"version": "0.0.1",
 	"license": "MIT",
 	"exports": {
-		"./DatePicker.svelte": {
+		".": {
 			"types": "./dist/DatePicker.svelte.d.ts",
 			"svelte": "./dist/DatePicker.svelte"
 		}

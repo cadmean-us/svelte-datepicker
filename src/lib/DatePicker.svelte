@@ -362,7 +362,6 @@
 	}
 
 	.h6 {
-		font-family: 'Roboto';
 		font-style: normal;
 		font-weight: 400;
 		font-size: 20px;

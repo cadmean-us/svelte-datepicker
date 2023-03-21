@@ -1,6 +1,13 @@
 {
-	"name": "svelte-datepicker",
+	"name": "@cadmean-us/svelte-datepicker",
 	"version": "0.0.1",
+	"license": "MIT",
+	"exports": {
+		"./DatePicker.svelte": {
+			"types": "./dist/DatePicker.svelte.d.ts",
+			"svelte": "./dist/DatePicker.svelte"
+		}
+	},
 	"scripts": {
 		"dev": "vite dev",
 		"build": "vite build",
@@ -29,5 +36,8 @@
 		"typescript": "^4.9.3",
 		"vite": "^4.0.0"
 	},
-	"type": "module"
+	"type": "module",
+	"dependencies": {
+		"@sveltejs/package": "^2.0.2"
+	}
 }

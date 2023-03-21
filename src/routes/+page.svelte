@@ -13,6 +13,11 @@
 	</div>
 </div>
 
+<div style="display: flex; flex-direction: row; gap: 100px;">
+	<div>Selected Date: {date}</div>
+	<div>Selected Modal Date: {dateModal}</div>
+</div>
+
 <DatePicker id="datepicker" bind:value={dateModal} bind:show={showModal} />
 
 <style>

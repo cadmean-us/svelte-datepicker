@@ -95,7 +95,8 @@
 
 	function isBlocked(val: string): boolean {
 		let d = new Date(val);
-		d.setDate(d.getDate() + 1);
+		d = getDateWithTimezoneOffset(d);
+		d.setDate(d.getDate());
 		return (
 			blockedDaysOfWeek.includes(d.getDay()) ||
 			(blockPastDays && d.getTime() < new Date().getTime()) ||

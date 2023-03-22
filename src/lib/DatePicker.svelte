@@ -282,7 +282,7 @@
 								}
 							}}
 							on:mouseleave={(e) => {
-								e.target.style = null;
+								e.target.style = cssToObject(getStyle(day));
 							}}
 							on:click={() => {
 								selectDate(day);

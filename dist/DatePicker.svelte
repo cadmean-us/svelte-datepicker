@@ -31,7 +31,6 @@ export let blockedDaysOfWeek = [];
 export let todayStyle = "";
 export let selectedStyle = "";
 export let blockedStyle = "";
-export let hoverStyle = "";
 let viewDate;
 let weeks;
 let dispatch = createEventDispatcher();
@@ -142,23 +141,6 @@ function getStyle(day) {
   }
   return "";
 }
-function cssToObject(css) {
-  if (!css.endsWith(";")) {
-    css += ";";
-  }
-  const styles = {};
-  const rules = css.split(";");
-  for (let i = 0; i < rules.length; i++) {
-    const rule = rules[i].trim();
-    if (!rule) {
-      continue;
-    }
-    const [property, value2] = rule.split(":");
-    const propertyName = property.trim().replace(/-([a-z])/g, (match, letter) => letter.toUpperCase());
-    styles[propertyName] = value2.trim();
-  }
-  return styles;
-}
 $:
   viewDateFrom(value, offset);
 $: {
@@ -199,15 +181,6 @@ $: {
 						<td
 							class="b1 btn {day.class}"
 							style={getStyle(day)}
-							on:mouseover={(e) => {
-								let cssObject = cssToObject(hoverStyle);
-								for (let parameter of Object.keys(cssObject)) {
-									e.target.style[parameter] = cssObject[parameter];
-								}
-							}}
-							on:mouseleave={(e) => {
-								e.target.style = cssToObject(getStyle(day));
-							}}
 							on:click={() => {
 								selectDate(day);
 							}}

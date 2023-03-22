@@ -18,7 +18,6 @@ declare const __propDef: {
         todayStyle?: string | undefined;
         selectedStyle?: string | undefined;
         blockedStyle?: string | undefined;
-        hoverStyle?: string | undefined;
     };
     events: {
         dateSelected: CustomEvent<any>;

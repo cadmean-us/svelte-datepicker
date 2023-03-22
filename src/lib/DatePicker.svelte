@@ -211,27 +211,6 @@
 		return '';
 	}
 
-	function cssToObject(css) {
-		if (!css.endsWith(';')) {
-			css += ';';
-		}
-		const styles = {};
-		const rules = css.split(';');
-
-		for (let i = 0; i < rules.length; i++) {
-			const rule = rules[i].trim();
-			if (!rule) {
-				continue;
-			}
-			const [property, value] = rule.split(':');
-			const propertyName = property
-				.trim()
-				.replace(/-([a-z])/g, (match, letter) => letter.toUpperCase());
-			styles[propertyName] = value.trim();
-		}
-		return styles;
-	}
-
 	$: viewDateFrom(value, offset);
 
 	$: {

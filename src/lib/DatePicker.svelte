@@ -187,7 +187,6 @@
 		const position = element.getBoundingClientRect();
 		x = position.left + window.scrollX + xOffset;
 		y = position.top + window.scrollY + yOffset;
-		console.log(y);
 	}
 
 	function leftClick(): void {

@@ -121,7 +121,6 @@ function getCoordinates() {
   const position = element.getBoundingClientRect();
   x = position.left + window.scrollX + xOffset;
   y = position.top + window.scrollY + yOffset;
-  console.log(y);
 }
 function leftClick() {
   viewDate.setMonth(viewDate.getMonth() - 1);

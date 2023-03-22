@@ -185,8 +185,9 @@
 		const element = document.querySelector('#' + id);
 		if (!element) return;
 		const position = element.getBoundingClientRect();
-		x = position.left + xOffset;
-		y = position.top + yOffset;
+		x = position.left + window.scrollX + xOffset;
+		y = position.top + window.scrollY + yOffset;
+		console.log(y);
 	}
 
 	function leftClick(): void {

@@ -206,7 +206,7 @@ $: {
 								}
 							}}
 							on:mouseleave={(e) => {
-								e.target.style = null;
+								e.target.style = cssToObject(getStyle(day));
 							}}
 							on:click={() => {
 								selectDate(day);
@@ -286,7 +286,6 @@ $: {
 	}
 
 	.h6 {
-		font-family: 'Roboto';
 		font-style: normal;
 		font-weight: 400;
 		font-size: 20px;

@@ -67,9 +67,6 @@
 	// Style of the blocked date
 	export let blockedStyle = '';
 
-	// Style applied on date hover
-	export let hoverStyle = '';
-
 	let viewDate: Date;
 	let weeks: { date: number; val: string; class: string }[][];
 	let dispatch = createEventDispatcher();
@@ -275,15 +272,6 @@
 						<td
 							class="b1 btn {day.class}"
 							style={getStyle(day)}
-							on:mouseover={(e) => {
-								let cssObject = cssToObject(hoverStyle);
-								for (let parameter of Object.keys(cssObject)) {
-									e.target.style[parameter] = cssObject[parameter];
-								}
-							}}
-							on:mouseleave={(e) => {
-								e.target.style = cssToObject(getStyle(day));
-							}}
 							on:click={() => {
 								selectDate(day);
 							}}

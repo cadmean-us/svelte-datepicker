@@ -54,7 +54,8 @@ function iso(date) {
 }
 function isBlocked(val) {
   let d = new Date(val);
-  d.setDate(d.getDate() + 1);
+  d = getDateWithTimezoneOffset(d);
+  d.setDate(d.getDate());
   return blockedDaysOfWeek.includes(d.getDay()) || blockPastDays && d.getTime() < (/* @__PURE__ */ new Date()).getTime() || blockedDates.some((b) => compareDates(b, d));
 }
 function weeksFrom(viewDate2, value2) {
